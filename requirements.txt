@@ -1,0 +1,11 @@
+asgiref==3.2.10
+DAWG-Python==0.7.2
+Django==3.0.7
+docopt==0.6.2
+Pillow==7.1.2
+pymorphy2==0.8
+pymorphy2-dicts==2.4.393442.3710985
+pytesseract==0.3.4
+pytz==2020.1
+sqlparse==0.3.1
+yargy==0.14.0

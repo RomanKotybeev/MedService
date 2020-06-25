@@ -14,7 +14,7 @@ morph = pymorphy2.MorphAnalyzer()
 
 
 def extract(text):
-    with open(os.path.join(os.getcwd(), 'list_diseases\\diseases'), encoding='utf-8') as f:
+    with open(os.path.join(os.getcwd(), 'list_diseases/diseases'), encoding='utf-8') as f:
         diseases = f.read().split('\n')
 
     text = text.replace('\ufeff', '')
