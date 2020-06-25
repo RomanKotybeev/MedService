@@ -1,0 +1,11 @@
+div.editable {
+    width: 300px;
+    height: 200px;
+    border: 1px solid #ccc;
+    padding: 5px;
+}
+
+mark {
+  background-color: yellow;
+  color: black;
+}

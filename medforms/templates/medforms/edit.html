@@ -1,0 +1,55 @@
+{% extends 'medforms/header.html' %}
+{% load mark %}
+{% load static %}
+
+{% block title %}
+    Edit
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="row">
+
+        <form action="{% url 'edit' slug %}" name="form_process" method="post" spellcheck="true">
+            {% csrf_token %}
+            <div class="input-field col s6">
+                {% if features %}
+                    <div id="toMark" contenteditable="true">
+                        {{ med_text|mark:feat_indices|safe|linebreaks }}
+                    </div>
+                {% else %}
+                    <textarea id="textarea1" name="textarea_name" class="materialize-textarea" autofocus>
+                        {{ med_text }}
+                    </textarea>
+                {% endif %}
+                <button class="waves-effect waves-light btn-small" type="submit">Обработать</button>
+            </div>
+        </form>
+
+
+
+
+
+    {% if features %}
+        <div class="card col s5 offset-s1">
+            {% for key, value in features.items %}
+                <ul class="collection">
+                    <li class="collection-item">
+                        {{ key }} : {{ value }}
+                        {#                        {% if  key == 'провоцирущие факторы' %}#}
+                        {#                            {{ key }}* : {{ value }}#}
+                        {#                        {% else %}#}
+                        {#                            {{ key }} : {{ value }}#}
+                        {#                        {% endif %}#}
+                    </li>
+                </ul>
+            {% endfor %}
+
+
+        </div>
+    {% endif %}
+
+ </div>
+
+{% endblock %}
