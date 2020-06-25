@@ -20,7 +20,7 @@ def gen_slug():
 
 
 class Home(View):
-    form = MedServiceForm
+    # form = MedServiceForm
     template_name = 'medforms/index.html'
 
     def get(self, request):
@@ -39,7 +39,7 @@ class Home(View):
 
 class UpdateMedService(View):
     # model = MedServiceModel
-    form = MedServiceForm
+    # form = MedServiceForm
     template_name = 'medforms/edit.html'
 
     def get(self, request, slug):
@@ -54,8 +54,6 @@ class UpdateMedService(View):
         request.session['med_text'] = request.POST.get('textarea_name')
         features = extract(request.session['med_text'])[0]
         feat_indices = extract(request.session['med_text'])[1]
-        print(type(feat_indices))
-        print(dir(feat_indices))
         return render(
             request,
             self.template_name,
