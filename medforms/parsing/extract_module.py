@@ -67,8 +67,11 @@ def extract(text):
         pass
 
     # If date was written without year, we take year from previous date
-    if len(dict_symp['Дата заболевания'])==5:
-        dict_symp['Дата заболевания'] += dict_symp['Дата осмотра'][dict_symp['Дата осмотра'].rfind('.'):]
+    try:
+        if len(dict_symp['Дата заболевания'])==5:
+            dict_symp['Дата заболевания'] += dict_symp['Дата осмотра'][dict_symp['Дата осмотра'].rfind('.'):]
+    except:
+        pass
 
     # Rule for detecring dates with such situation "болен 5 дней"
     DAY_RULE = morph_pipeline(['дней'])
@@ -158,9 +161,12 @@ def extract(text):
         dict_symp['Время заболевания'] = time_lst[0]
         dict_index['Время поступления'] = time_spans[0]
         dict_index['Время заболевания'] = time_spans[0]
-    if len(time_lst)>1: 
-        dict_symp['Время заболевания'] = time_lst[1]
-        dict_index['Время заболевания'] = time_spans[1]
+    try:
+        if len(time_lst)>1: 
+            dict_symp['Время заболевания'] = time_lst[1]
+            dict_index['Время заболевания'] = time_spans[1]
+    except:
+        pass
 
     t1 = dict_symp['Время поступления']
     t2 = dict_symp['Время заболевания']
