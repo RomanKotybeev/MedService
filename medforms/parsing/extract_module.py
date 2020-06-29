@@ -53,15 +53,18 @@ def extract(text):
 
     # Sometimes we dont have information about birthday and we should check difference between years
     # in first two dates to determine there is information about birthday or not
-    if int(dates_lst[1][-2:])-int(dates_lst[0][-2:])<0:
-        # According medical cards dates have this order
-        dict_symp['Дата рождения'] = dates_lst[0]
-        dict_symp['Дата осмотра'] = dates_lst[1]
-        dict_symp['Дата заболевания'] = dates_lst[2]
-    else: 
-        birth = None
-        dict_symp['Дата осмотра'] = dates_lst[0]
-        dict_symp['Дата заболевания'] = dates_lst[1]
+    try:
+        if int(dates_lst[1][-2:])-int(dates_lst[0][-2:])<0:
+            # According medical cards dates have this order
+            dict_symp['Дата рождения'] = dates_lst[0]
+            dict_symp['Дата осмотра'] = dates_lst[1]
+            dict_symp['Дата заболевания'] = dates_lst[2]
+        else: 
+            birth = None
+            dict_symp['Дата осмотра'] = dates_lst[0]
+            dict_symp['Дата заболевания'] = dates_lst[1]
+    except:
+        pass
 
     # If date was written without year, we take year from previous date
     if len(dict_symp['Дата заболевания'])==5:
@@ -73,12 +76,15 @@ def extract(text):
     day_lst = []
     for match in parser.findall(text):
         day_lst.append((match.span, [_.value for _ in match.tokens]))
-
-    if day_lst and dict_symp['Дата заболевания'] is None:
-        dict_symp['Дата заболевания'] = text[day_lst[0][0][0]-20:day_lst[0][0][0]+20]
-        dict_symp['Дата заболевания'] = re.findall(r'\d+', dict_symp['Дата заболевания'])[0]
-        dict_symp['Дата заболевания'] = str(int(dict_symp['Дата осмотра'][:2])-int(dict_symp['Дата заболевания']))
-        dict_symp['Дата заболевания'] = dict_symp['Дата заболевания']+dict_symp['Дата осмотра'][2:]
+    
+    try:
+        if day_lst and dict_symp['Дата заболевания'] is None:
+            dict_symp['Дата заболевания'] = text[day_lst[0][0][0]-20:day_lst[0][0][0]+20]
+            dict_symp['Дата заболевания'] = re.findall(r'\d+', dict_symp['Дата заболевания'])[0]
+            dict_symp['Дата заболевания'] = str(int(dict_symp['Дата осмотра'][:2])-int(dict_symp['Дата заболевания']))
+            dict_symp['Дата заболевания'] = dict_symp['Дата заболевания']+dict_symp['Дата осмотра'][2:]
+    except:
+        pass
 
     # Rule for detecting Age
     age_lst = []
@@ -91,34 +97,42 @@ def extract(text):
     for match in parser.findall(text):
         s = ''.join([_.value for _ in match.tokens])
         age_lst.append((re.findall(r'\d+', s)[0]))
-
-    if age_lst:
-        dict_symp['Возраст'] = int(age_lst[-1])
+    
+    try:
+        if age_lst:
+            dict_symp['Возраст'] = int(age_lst[-1])
+    except:
+        pass
     
     # Transform dates to datetime format to make calculations
+    if dict_symp['Дата осмотра'] and (dict_symp['Дата заболевания']):
+        try:
+            d1 = datetime.strptime(dict_symp['Дата осмотра'], '%d.%m.%Y')
+        except:
+            d1 = datetime.strptime(dict_symp['Дата осмотра'], '%d.%m.%y')
+            d1 = d1.strftime('%d.%m.%Y')
+            d1 = datetime.strptime(d1, '%d.%m.%Y')
+        try:
+            d2 = datetime.strptime(dict_symp['Дата заболевания'], '%d.%m.%Y')
+        except:
+            d2 = datetime.strptime(dict_symp['Дата заболевания'], '%d.%m.%y')
+            d2 = d2.strftime('%d.%m.%Y')
+            d2 = datetime.strptime(d2, '%d.%m.%Y')
     try:
-        d1 = datetime.strptime(dict_symp['Дата осмотра'], '%d.%m.%Y')
+        dict_symp['Болен дней'] = (d1 - d2).days
+        dict_symp['Болен часов'] = (int(dict_symp['Болен дней'])-1)*24
     except:
-        d1 = datetime.strptime(dict_symp['Дата осмотра'], '%d.%m.%y')
-        d1 = d1.strftime('%d.%m.%Y')
-        d1 = datetime.strptime(d1, '%d.%m.%Y')
+        pass
     try:
-        d2 = datetime.strptime(dict_symp['Дата заболевания'], '%d.%m.%Y')
+        if dict_symp['Дата рождения'] is None:
+            dict_symp['Возраст в днях'] = int(dict_symp['Возраст'])*365
+        else:
+            d1 = datetime.strptime(dict_symp['Дата осмотра'], '%d.%m.%Y')
+            d2 = datetime.strptime(dict_symp['Дата рождения'], '%d.%m.%Y')
+            dict_symp['Возраст в днях'] = (d1 - d2).days
     except:
-        d2 = datetime.strptime(dict_symp['Дата заболевания'], '%d.%m.%y')
-        d2 = d2.strftime('%d.%m.%Y')
-        d2 = datetime.strptime(d2, '%d.%m.%Y')
-
-    dict_symp['Болен дней'] = (d1 - d2).days
-    dict_symp['Болен часов'] = (int(dict_symp['Болен дней'])-1)*24
-
-    if dict_symp['Дата рождения'] is None:
-        dict_symp['Возраст в днях'] = int(dict_symp['Возраст'])*365
-    else:
-        d1 = datetime.strptime(dict_symp['Дата осмотра'], '%d.%m.%Y')
-        d2 = datetime.strptime(dict_symp['Дата рождения'], '%d.%m.%Y')
-        dict_symp['Возраст в днях'] = (d1 - d2).days
-
+        pass
+    
     # Rule for time detecting
     time_lst = []
     time_spans = []
@@ -150,8 +164,11 @@ def extract(text):
 
     t1 = dict_symp['Время поступления']
     t2 = dict_symp['Время заболевания']
-    delta = int(t1[:t1.find(':')])+24-int(t2[:t2.find(':')])
-    dict_symp['Болен часов'] = dict_symp['Болен часов'] + delta
+    try:
+        delta = int(t1[:t1.find(':')])+24-int(t2[:t2.find(':')])
+        dict_symp['Болен часов'] = dict_symp['Болен часов'] + delta
+    except:
+        pass
 
     # Rules for detecting Weight, Height and IMT
     HEIGHT = and_(gte(50),lte(250))
@@ -172,21 +189,26 @@ def extract(text):
     for match in parser.findall(text):
         height = (''.join([_.value for _ in match.tokens]))
         height = re.findall(r'\d+', height)[0]
-
-    if height:
-        dict_symp['рост'] = int(height)
+    try:
+        if height:
+            dict_symp['рост'] = int(height)
+    except:
+        pass
 
     weight = None
     parser = Parser(WEIGHT_RULE)
     for match in parser.findall(text):
         weight = (''.join([_.value for _ in match.tokens]))
         weight = re.findall(r'\d+', weight)[0]
+    
+    try:
+        if weight:
+            dict_symp['вес'] = int(weight)
 
-    if weight:
-        dict_symp['вес'] = int(weight)
-
-    if (dict_symp['рост'] is not None) and (dict_symp['вес'] is not None):
-        dict_symp['IMT'] = round(dict_symp['вес']/(dict_symp['рост']/100*dict_symp['рост']/100),2)
+        if (dict_symp['рост'] is not None) and (dict_symp['вес'] is not None):
+            dict_symp['IMT'] = round(dict_symp['вес']/(dict_symp['рост']/100*dict_symp['рост']/100),2)
+    except:
+        pass
 
     # Rules for detecting pressure
     ADSIST = and_(gte(50),lte(250))
@@ -206,10 +228,13 @@ def extract(text):
     for match in parser.findall(text):
         pres = (''.join([_.value for _ in match.tokens]))
         pres = re.findall(r'\d+', pres)
-
-    if pres:
-        dict_symp['давление сист'] = int(pres[0])
-        dict_symp['давление диаст'] = int(pres[1])
+    
+    try:
+        if pres:
+            dict_symp['давление сист'] = int(pres[0])
+            dict_symp['давление диаст'] = int(pres[1])
+    except:
+        pass
 
     # Rule for detecting Pulse
     PULSE = and_(gte(40),lte(150))
@@ -225,9 +250,12 @@ def extract(text):
     for match in parser.findall(text):
         pulse = (''.join([_.value for _ in match.tokens]))
         pulse = re.findall(r'\d+', pulse)
-
-    if pulse:
-        dict_symp['ЧСС'] = int(pulse[0])
+    
+    try:
+        if pulse:
+            dict_symp['ЧСС'] = int(pulse[0])
+    except:
+        pass
 
     #Rules for detecting temperatures
     DEGREES = and_(gte(34),lte(42))
@@ -268,12 +296,15 @@ def extract(text):
     parser = Parser(SEX_RULE)
     for match in parser.findall(text):
         sex_lst.append(''.join([_.value for _ in match.tokens]))
-
+    
+    try:
     if sex_lst:
         dict_symp['пол'] = sex_lst[0]
         dict_symp['пол'] = dict_symp['пол'].lower().replace('женский', '2')
         dict_symp['пол'] = dict_symp['пол'].lower().replace('мужской', '1')
         dict_symp['пол'] = int(dict_symp['пол'])
+    except:
+        pass
 
     # Rule for detecting DISEASES
     DISEASES_RULE = morph_pipeline(diseases[:-1])
